@@ -41,10 +41,10 @@ let avoidObstacles (sensors: Scribbler.Sensors) =
     | true,  true  -> forward 0.3 0
 
 let turtle (sensors: Scribbler.Sensors) =
-    let mutable len = 0
+    let len = ref 0
     let pattern () =
-        len <- len + 10
-        forward 1. len
+        len := !len + 10
+        forward 1. !len
     if sensors.IR.Left || sensors.IR.Right
     then stop 0
     else pattern ()
