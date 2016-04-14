@@ -19,30 +19,31 @@ module Scribbler =
         stream.ReadByte () |> printfn "Connected (%i)"
         new BinaryReader(stream), new BinaryWriter(stream)
 
+    type IR = { Left: bool; Right: bool }
+    type Light = { Left: float; Middle: float; Right: float }
+    type Line = { Left: bool; Right: bool }
+    type Sensors = { IR: IR; Light: Light; Line: Line; Stall: bool }
+
     let mutable last = None
+
+    let readSensors (reader: BinaryReader) =
+        let readBool () = reader.ReadByte() = 1uy
+        let readFloat () = (reader.ReadUInt16 () |> float) / 65535.
+        { IR    = { Left = readBool (); Right = readBool () }
+          Light = { Left = readFloat (); Middle = readFloat (); Right = readFloat () }
+          Line  = { Left = readBool (); Right = readBool () }
+          Stall = readBool () }
 
     let setMotors (reader: BinaryReader, writer: BinaryWriter) (left: float) (right: float) =
         let left' = (left + 1.0) * 100. |> byte
         let right' = (right + 1.0) * 100. |> byte
         writer.Write [| 109uy; right'; left'; 0uy; 0uy; 0uy; 0uy; 0uy; 0uy |]
         reader.ReadBytes 9 |> ignore
-        last <- reader.ReadBytes 11 |> Some
-
-    type IR = { Left: bool; Right: bool }
-    type Light = { Left: float; Middle: float; Right: float }
-    type Line = { Left: bool; Right: bool }
-    type Sensors = { IR: IR; Light: Light; Line: Line; Stall: bool }
+        last <- readSensors reader |> Some
 
     let getSensors (reader: BinaryReader, writer: BinaryWriter) =
-        let sensors = match last with
-                      | Some last -> last
-                      | None -> writer.Write [| 65uy; 0uy; 0uy; 0uy; 0uy; 0uy; 0uy; 0uy; 0uy |]
-                                reader.ReadBytes 9 |> ignore
-                                reader.ReadBytes 11
-        let asBool i = sensors.[i] = 1uy
-        let asFloat i = (((sensors.[i] |> int) << 8 ||| (sensors.[i + 1] |> int)) |> float) / 65535.
-        printfn "SENSORS: %A" sensors
-        { IR    = { Left = asBool 0; Right = asBool 1 }
-          Light = { Left = asFloat 2; Middle = asFloat 4; Right = asFloat 6 }
-          Line  = { Left = asBool 8; Right = asBool 9 }
-          Stall = asBool 10 }
+        match last with
+        | Some sensors -> last <- None; sensors
+        | None -> writer.Write [| 65uy; 0uy; 0uy; 0uy; 0uy; 0uy; 0uy; 0uy; 0uy |]
+                  reader.ReadBytes 9 |> ignore
+                  readSensors reader

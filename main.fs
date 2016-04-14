@@ -8,14 +8,20 @@ open Microsoft.Psi.FSharp
 let port = "/dev/ttyUSB0"
 
 // Test.protocol port
-Test.follow port
+// Test.follow port
+Test.avoid port
 (*
 let robot = Scribbler.connect port
 
 let sensors = PsiFactory.CreateTimer("pull", 100u, fun _ _ -> Scribbler.getSensors robot)
 let motors = Stream.iter (fun (left, right) -> Scribbler.setMotors robot left right)
 
-let drive (sensors: Scribbler.Sensors) =
+let followLine (sensors: Scribbler.Sensors) =
+    if   sensors.IR.Left  then Some (1., -1.)
+    elif sensors.IR.Right then Some (-1., 1.)
+    else None
+
+let avoidObstacles (sensors: Scribbler.Sensors) =
     if   sensors.IR.Left  then Some (1., -1.)
     elif sensors.IR.Right then Some (-1., 1.)
     else None

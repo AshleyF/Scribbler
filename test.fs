@@ -48,3 +48,37 @@ let follow port =
         // Console.ReadLine() |> ignore
 
     printfn "Done"
+
+let avoid port =
+    let robot = Scribbler.connect port
+    let sensors () = Scribbler.getSensors robot
+    let motors = Scribbler.setMotors robot
+
+    // for i in 0 .. 1000 do
+    while true do
+        let s = sensors ()
+        printfn "Sensors\n%A" s
+        if s.Stall then
+            motors -3. -3.
+            System.Threading.Thread.Sleep 2000
+        else
+            match s.IR.Left, s.IR.Right with
+            | false, false ->
+                printfn "None"
+                motors 0. 0. // stop
+            | true, false ->
+                printfn "Left"
+                motors -0.3 0.3 // vear left
+                System.Threading.Thread.Sleep 1000
+            | false, true ->
+                printfn "Right"
+                motors 0.3 -0.3 // vear right
+                System.Threading.Thread.Sleep 1000
+            | true, true ->
+                printfn "Both"
+                motors 0.3 0.3 // forward
+        System.Threading.Thread.Sleep 33
+        // motors 0. 0.
+        // Console.ReadLine() |> ignore
+
+    printfn "Done"
