@@ -1,4 +1,4 @@
-namespace BriefRobotics
+namespace Microsoft.Psi.Toys
 
 module Scribbler =
 
@@ -7,7 +7,7 @@ module Scribbler =
     open System.IO.Ports
     open System.Threading
 
-    let connect port =
+    let _connect port =
         printfn "Connecting to Scribbler on %s" port
         let baud, timeout = 38400, 15000
         let com = new SerialPort(port, baud)
@@ -19,12 +19,13 @@ module Scribbler =
         stream.ReadByte () |> printfn "Connected (%i)"
         new BinaryReader(stream), new BinaryWriter(stream)
 
+    let connect port =
+        new BinaryReader(new MemoryStream(1024)), new BinaryWriter(new MemoryStream(1024))
+
     type IR = { Left: bool; Right: bool }
     type Light = { Left: float; Middle: float; Right: float }
     type Line = { Left: bool; Right: bool }
     type Sensors = { IR: IR; Light: Light; Line: Line; Stall: bool }
-
-    let mutable last = None
 
     let readSensors (reader: BinaryReader) =
         let readBool () = reader.ReadByte() = 1uy
@@ -33,6 +34,8 @@ module Scribbler =
           Light = { Left = readFloat (); Middle = readFloat (); Right = readFloat () }
           Line  = { Left = readBool (); Right = readBool () }
           Stall = readBool () }
+
+    let mutable last = None
 
     let setMotors (reader: BinaryReader, writer: BinaryWriter) (left: float) (right: float) =
         let left' = (left + 1.0) * 100. |> byte
