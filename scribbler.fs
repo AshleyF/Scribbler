@@ -16,10 +16,8 @@ module Scribbler =
         com.Open()
         Thread.Sleep 5000
         let stream = com.BaseStream
+        stream.ReadByte () |> printfn "Connected (%i)"
         new BinaryReader(stream), new BinaryWriter(stream)
-
-    let _connect port =
-        new BinaryReader(new MemoryStream()), new BinaryWriter(new MemoryStream())
 
     let mutable last = None
 
@@ -33,7 +31,7 @@ module Scribbler =
     type IR = { Left: bool; Right: bool }
     type Light = { Left: float; Middle: float; Right: float }
     type Line = { Left: bool; Right: bool }
-    type Sensors = { Stall: bool; IR: IR; Light: Light; Line: Line }
+    type Sensors = { IR: IR; Light: Light; Line: Line; Stall: bool }
 
     let getSensors (reader: BinaryReader, writer: BinaryWriter) =
         let sensors = match last with
@@ -42,9 +40,9 @@ module Scribbler =
                                 reader.ReadBytes 9 |> ignore
                                 reader.ReadBytes 11
         let asBool i = sensors.[i] = 1uy
-        let asFloat i = 0. // (((sensors.[i] |> int) << 8 ||| (sensors.[i + 1] |> int)) |> float) / 65535.
+        let asFloat i = (((sensors.[i] |> int) << 8 ||| (sensors.[i + 1] |> int)) |> float) / 65535.
         printfn "SENSORS: %A" sensors
-        { Stall = asBool 0
-          IR    = { Left = asBool 1; Right = asBool 2 }
-          Light = { Left = asFloat 3; Middle = asFloat 5; Right = asFloat 7 }
-          Line  = { Left = asBool 9; Right = asBool 10 } }
+        { IR    = { Left = asBool 0; Right = asBool 1 }
+          Light = { Left = asFloat 2; Middle = asFloat 4; Right = asFloat 6 }
+          Line  = { Left = asBool 8; Right = asBool 9 }
+          Stall = asBool 10 }
