@@ -28,28 +28,23 @@ module Scribbler =
         let right' = (right + 1.0) * 100. |> byte
         writer.Write [| 109uy; right'; left'; 0uy; 0uy; 0uy; 0uy; 0uy; 0uy |]
         reader.ReadBytes 9 |> ignore
-        printfn "Read sensors 11"
         last <- reader.ReadBytes 11 |> Some
 
     type IR = { Left: bool; Right: bool }
     type Light = { Left: float; Middle: float; Right: float }
     type Line = { Left: bool; Right: bool }
-    type Sensors = { IR: IR; Light: Light; Line: Line; Stall: bool }
+    type Sensors = { Stall: bool; IR: IR; Light: Light; Line: Line }
 
     let getSensors (reader: BinaryReader, writer: BinaryWriter) =
         let sensors = match last with
-                      | Some last -> printfn "Using last"
-                                     last
-                      | None -> printfn "Write sensor command"
-                                writer.Write [| 65uy; 0uy; 0uy; 0uy; 0uy; 0uy; 0uy; 0uy; 0uy |]
-                                printfn "Read echo 9"
+                      | Some last -> last
+                      | None -> writer.Write [| 65uy; 0uy; 0uy; 0uy; 0uy; 0uy; 0uy; 0uy; 0uy |]
                                 reader.ReadBytes 9 |> ignore
-                                printfn "Read 11"
                                 reader.ReadBytes 11
         let asBool i = sensors.[i] = 1uy
         let asFloat i = 0. // (((sensors.[i] |> int) << 8 ||| (sensors.[i + 1] |> int)) |> float) / 65535.
         printfn "SENSORS: %A" sensors
-        { IR    = { Left = asBool 0; Right = asBool 1 }
-          Light = { Left = asFloat 2; Middle = asFloat 4; Right = asFloat 6 }
-          Line  = { Left = asBool 9; Right = asBool 10 }
-          Stall = asBool 10 }
+        { Stall = asBool 0
+          IR    = { Left = asBool 1; Right = asBool 2 }
+          Light = { Left = asFloat 3; Middle = asFloat 5; Right = asFloat 7 }
+          Line  = { Left = asBool 9; Right = asBool 10 } }
