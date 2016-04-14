@@ -6,7 +6,7 @@ module Scribbler =
     open System.IO
     open System.IO.Ports
 
-    let connect port =
+    let _connect port =
         let baud, timeout = 38400, 1500
         let com = new SerialPort(port, baud)
         com.ReadTimeout <- timeout
@@ -14,6 +14,9 @@ module Scribbler =
         com.Open()
         let stream = com.BaseStream
         new BinaryReader(stream), new BinaryWriter(stream)
+
+    let connect port =
+        new BinaryReader(new MemoryStream()), new BinaryWriter(new MemoryStream())
 
     let setMotors (reader: BinaryReader, writer: BinaryWriter) (left: float) (right: float) =
         let left' = (left + 1.0) * 100. |> byte

@@ -19,16 +19,9 @@ let drive (sensors: Scribbler.Sensors) =
     elif sensors.IR.Right then Some (-1., 1.)
     else None
 
-let run (node: IPsiStream) =
-    let now = DateTime.Now
-    let replay = new ReplayDescriptor(now, now + TimeSpan.FromSeconds(10.))
-    use graph = PsiFactory.CompileAndRun("run", node, replay)
-    let completed = replay.Completed.WaitOne()
-    printfn "Completed"
-
 sensors
 |> Stream.map drive
 |> Stream.filter Option.isSome
 |> Stream.map Option.get
 |> actuate
-|> run
+|> Psi.run
