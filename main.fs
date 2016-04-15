@@ -13,10 +13,10 @@ let run (behavior: Scribbler.Sensors -> (float * float * int)) =
     let move (left, right, duration: int) =
         Scribbler.setMotors robot left right
         Thread.Sleep duration // TODO: state machine
-    PsiFactory.CreateTimer("pull", 50u, fun _ _ -> 123) // Scribbler.getSensors robot)
+    PsiFactory.CreateTimer("pull", 50u, fun _ _ -> Scribbler.getSensors robot)
     |> Stream.iter (printfn "Sensors : %A")
-   // |> Stream.map behavior
-    //|> Stream.iter move
+    |> Stream.map behavior
+    |> Stream.iter move
     |> Psi.run
 
 let forward speed duration =  speed,  speed, duration

@@ -55,6 +55,7 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
+    <Compile Include="psi.fs" />
     <Compile Include="scribbler.fs" />
     <Compile Include="main.fs" />
     <Content Include="App.config">
@@ -67,9 +68,6 @@
   <ItemGroup>
     <Reference Include="Microsoft.Psi">
       <HintPath>external\Microsoft.Psi.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Psi.FSharp">
-      <HintPath>external\Microsoft.Psi.FSharp.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
